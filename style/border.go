@@ -14,11 +14,39 @@ type BorderStyle struct {
 
 func RoundedBorder() BorderStyle {
 	return BorderStyle{
-		Top:      "─",
-		Bottom:   "─",
-		Left:     "│",
-		Right:    "│",
-		TopLeft:  "╭",
-		TopRight: "╮",
+		Top:         "─",
+		Bottom:      "─",
+		Left:        "│",
+		Right:       "│",
+		TopLeft:     "╭",
+		TopRight:    "╮",
+		BottomLeft:  "╰",
+		BottomRight: "╯",
+	}
+}
+
+func DoubleBorder() BorderStyle {
+	return BorderStyle{
+		Top:         "═",
+		Bottom:      "═",
+		Left:        "║",
+		Right:       "║",
+		TopLeft:     "╔",
+		TopRight:    "╗",
+		BottomLeft:  "╚",
+		BottomRight: "╝",
+	}
+}
+
+func SimpleBorder() BorderStyle {
+	return BorderStyle{
+		Top:         "-",
+		Bottom:      "-",
+		Left:        "|",
+		Right:       "|",
+		TopLeft:     "+",
+		TopRight:    "+",
+		BottomLeft:  "+",
+		BottomRight: "+",
 	}
 }

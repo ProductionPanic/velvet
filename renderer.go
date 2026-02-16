@@ -6,66 +6,77 @@ import (
 	"strings"
 
 	"github.com/ProductionPanic/velvet/ansi"
+	"github.com/ProductionPanic/velvet/buffer"
 )
 
-type renderer struct {
-	frontBuffer *Buffer
-	backBuffer  *Buffer
-	Out         io.Writer
-	Width       int
-	Height      int
+type Renderer struct {
+	Out           io.Writer
+	front         *buffer.Grid
+	back          *buffer.Grid
+	width, height int
 }
 
-func (r *renderer) Flush() {
+// replace the backbuffer
+func (r *Renderer) Write(content *buffer.Grid) {
+	r.back = content.Resize(r.width, r.height) // size to fit the renderer
+}
+
+func (r *Renderer) Clear() {
+	r.back = buffer.NewGrid(r.width, r.height)
+}
+
+func (r *Renderer) outputCell(cell buffer.Cell, x, y int, sb *strings.Builder) {
+	sb.WriteString(ansi.Combine(
+		ansi.SetCursorPosition(x+1, y+1), // ANSI escape codes are 1-indexed)
+		ansi.ForegroundColor(cell.Style.Fg),
+		ansi.BackgroundColor(cell.Style.Bg),
+	))
+
+	if cell.Style.Bold {
+		ansi.Print(ansi.Bold)
+	}
+
+	if cell.Style.Italic {
+		ansi.Print(ansi.Italic)
+	}
+
+	if cell.Style.Underline {
+		ansi.Print(ansi.Underline)
+	}
+
+	sb.WriteRune(cell.Rune)
+
+	sb.WriteString(ansi.Reset) // Reset styles after each cell to avoid style bleed
+
+}
+
+func (r *Renderer) Flush() {
 	var sb strings.Builder
-	changed := false
-	for y := 0; y < r.Height; y++ {
-		for x := 0; x < r.Width; x++ {
-			idx := y*r.Width + x
-			newCell := r.backBuffer.Cells[idx]
-			oldCell := r.frontBuffer.Cells[idx]
 
-			if newCell != oldCell {
-				changed = true
-				// set cursor position
-				sb.WriteString(ansi.SetCursorPosition(x, y))
-				// apply style
-				sb.WriteString(ansi.RenderCellStyle(newCell.Style))
-				// write character
-				sb.WriteRune(newCell.Char)
-				// reset style
-				sb.WriteString(ansi.Reset)
+	for y := 0; y < r.height; y++ {
+		for x := 0; x < r.width; x++ {
+			frontCell := r.front.Get(x, y)
+			backCell := r.back.Get(x, y)
 
-				// update front buffer
-				r.frontBuffer.Cells[idx] = newCell
+			if frontCell != backCell {
+				r.outputCell(backCell, x, y, &sb)
+				r.front.Set(x, y, backCell)
 			}
 		}
 	}
-	if !changed {
-		return
-	}
 
 	fmt.Fprint(r.Out, sb.String())
-
-	r.backBuffer.Clear()
 }
 
-func (r *renderer) Write(buf *Buffer) {
-	// size is not the same
-	if buf.Width != r.Width || buf.Height != r.Height {
-		// crop the buffer to fit the renderer
-		buf = buf.Crop(r.Width, r.Height)
-	}
+func NewRenderer(out io.Writer, width, height int) *Renderer {
+	front := buffer.NewGrid(width, height)
+	back := buffer.NewGrid(width, height)
 
-	r.backBuffer = buf
-}
-
-func newRenderer(out io.Writer, width, height int) renderer {
-	return renderer{
-		frontBuffer: NewBuffer(width, height),
-		backBuffer:  NewBuffer(width, height),
-		Out:         out,
-		Width:       width,
-		Height:      height,
+	return &Renderer{
+		Out:    out,
+		front:  front,
+		back:   back,
+		width:  width,
+		height: height,
 	}
 }
