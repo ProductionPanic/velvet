@@ -33,5 +33,6 @@ func FromHex(hex string) Color {
 	return Color{
 		R: uint8(value >> 16),
 		G: uint8((value >> 8) & 0xFF),
+		B: uint8(value & 0xFF),
 	}
 }

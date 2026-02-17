@@ -1,52 +1,52 @@
 package style
 
 type BorderStyle struct {
-	Top    string
-	Bottom string
-	Left   string
-	Right  string
+	Top    rune
+	Bottom rune
+	Left   rune
+	Right  rune
 
-	TopLeft     string
-	TopRight    string
-	BottomLeft  string
-	BottomRight string
+	TopLeft     rune
+	TopRight    rune
+	BottomLeft  rune
+	BottomRight rune
 }
 
 func RoundedBorder() BorderStyle {
 	return BorderStyle{
-		Top:         "─",
-		Bottom:      "─",
-		Left:        "│",
-		Right:       "│",
-		TopLeft:     "╭",
-		TopRight:    "╮",
-		BottomLeft:  "╰",
-		BottomRight: "╯",
+		Top:         '─',
+		Bottom:      '─',
+		Left:        '│',
+		Right:       '│',
+		TopLeft:     '╭',
+		TopRight:    '╮',
+		BottomLeft:  '╰',
+		BottomRight: '╯',
 	}
 }
 
 func DoubleBorder() BorderStyle {
 	return BorderStyle{
-		Top:         "═",
-		Bottom:      "═",
-		Left:        "║",
-		Right:       "║",
-		TopLeft:     "╔",
-		TopRight:    "╗",
-		BottomLeft:  "╚",
-		BottomRight: "╝",
+		Top:         '═',
+		Bottom:      '═',
+		Left:        '║',
+		Right:       '║',
+		TopLeft:     '╔',
+		TopRight:    '╗',
+		BottomLeft:  '╚',
+		BottomRight: '╝',
 	}
 }
 
 func SimpleBorder() BorderStyle {
 	return BorderStyle{
-		Top:         "-",
-		Bottom:      "-",
-		Left:        "|",
-		Right:       "|",
-		TopLeft:     "+",
-		TopRight:    "+",
-		BottomLeft:  "+",
-		BottomRight: "+",
+		Top:         '-',
+		Bottom:      '-',
+		Left:        '|',
+		Right:       '|',
+		TopLeft:     '+',
+		TopRight:    '+',
+		BottomLeft:  '+',
+		BottomRight: '+',
 	}
 }

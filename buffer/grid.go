@@ -1,5 +1,22 @@
 package buffer
 
+import "github.com/ProductionPanic/velvet/style"
+
+type AlignX int
+type AlignY int
+
+const (
+	AlignLeft AlignX = iota
+	AlignCenter
+	AlignRight
+)
+
+const (
+	AlignTop AlignY = iota
+	AlignMiddle
+	AlignBottom
+)
+
 type Grid struct {
 	Cells  []Cell
 	Width  int
@@ -28,6 +45,26 @@ func (g *Grid) Get(x, y int) Cell {
 	return g.Cells[g.index(x, y)]
 }
 
+func (g *Grid) SetRune(x, y int, r rune) {
+	if !g.isInBounds(x, y) {
+		return
+	}
+	cell := g.Get(x, y)
+	cell.Rune = r
+	g.Set(x, y, cell)
+}
+
+func (g *Grid) SetEmptyCells(r rune, s *style.CellStyle) {
+	for i := range g.Cells {
+		if g.Cells[i].Rune == ' ' {
+			g.Cells[i] = Cell{
+				Rune:  r,
+				Style: s,
+			}
+		}
+	}
+}
+
 // Resize just creates a new grid with the given dimensions, and copies over the cells that fit in the new dimensions. Cells that don't fit are discarded, and new cells are initialized as empty.
 func (g *Grid) Resize(width, height int) *Grid {
 	newGrid := NewGrid(width, height)
@@ -40,9 +77,45 @@ func (g *Grid) Resize(width, height int) *Grid {
 	return newGrid
 }
 
+func (g *Grid) AddRow() {
+	g.Cells = append(g.Cells, make([]Cell, g.Width)...)
+	g.Height++
+}
+
+func (g *Grid) AddColumn() {
+	g = g.Resize(g.Width+1, g.Height)
+}
+
 func (g *Grid) Clear() {
 	for i := range g.Cells {
 		g.Cells[i] = EmptyCell()
+	}
+}
+
+func (g *Grid) Place(b *Grid, x AlignX, y AlignY) {
+	var startX, startY int
+	switch x {
+	case AlignLeft:
+		startX = 0
+	case AlignCenter:
+		startX = (g.Width - b.Width) / 2
+	case AlignRight:
+		startX = g.Width - b.Width
+	}
+
+	switch y {
+	case AlignTop:
+		startY = 0
+	case AlignMiddle:
+		startY = (g.Height - b.Height) / 2
+	case AlignBottom:
+		startY = g.Height - b.Height
+	}
+
+	for by := 0; by < b.Height; by++ {
+		for bx := 0; bx < b.Width; bx++ {
+			g.Set(startX+bx, startY+by, b.Get(bx, by))
+		}
 	}
 }
 
