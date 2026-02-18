@@ -251,7 +251,7 @@ func (c *Container) applyTextWrap(lines [][]buffer.Cell, fixedContentWidth int, 
 						currentLine = append(currentLine, cell)
 						lineWidth += cellWidth
 
-						if cell.Content == "" {
+						if cell.Content == " " {
 							lastSpaceIndex = len(currentLine) - 1
 						}
 						if i == len(line)-1 && len(currentLine) > 0 {
@@ -332,7 +332,7 @@ func (c *Container) applyTextWrap(lines [][]buffer.Cell, fixedContentWidth int, 
 						currentLine = append(currentLine, cell)
 						lineWidth += cellWidth
 
-						if cell.Content == "" {
+						if cell.Content == " " {
 							lastSpaceIndex = len(currentLine) - 1
 						}
 						if i == len(line)-1 && len(currentLine) > 0 {
