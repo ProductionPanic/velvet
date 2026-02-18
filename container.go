@@ -33,6 +33,11 @@ func NewContainer() *Container {
 	}
 }
 
+func (c *Container) Copy() *Container {
+	newContainer := *c
+	return &newContainer
+}
+
 func (c *Container) Padding(p ...int) *Container {
 	if len(p) == 1 {
 		padding := p[0]
