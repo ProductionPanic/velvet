@@ -161,10 +161,11 @@ The `KeyMsg.String()` method returns string representations of keys that can be 
 ```go
 velvet.NewProgram(
     model{},
-    velvet.WithAltScreen(false),     // Disable alt screen
     velvet.WithOutput(customWriter),  // Custom output
     velvet.WithInput(customReader),   // Custom input
     velvet.WithoutInput(),            // No input (display only)
 )
 ```
+
+**Note:** Velvet always uses the alternate screen buffer because the renderer uses absolute cursor positioning. This prevents corruption of the terminal scrollback and previous content.
 

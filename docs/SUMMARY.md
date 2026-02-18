@@ -61,11 +61,12 @@ A complete **Program struct** with bubbletea-style architecture for Velvet, usin
 - [x] View() *buffer.Grid - buffer rendering
 
 ### ✅ Program Options
-- [x] WithAltScreen(bool)
 - [x] WithInput(io.Reader)
 - [x] WithOutput(io.Writer)
 - [x] WithoutInput()
 - [x] WithMouseAllMotion(bool) - prepared for future
+
+**Note:** Alternate screen buffer is always enabled (required for absolute cursor positioning).
 
 ## Testing Results
 

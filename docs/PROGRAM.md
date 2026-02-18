@@ -159,12 +159,13 @@ Configure the program with functional options:
 ```go
 p := velvet.NewProgram(
     model{},
-    velvet.WithAltScreen(true),      // Enable alternate screen
     velvet.WithInput(customReader),   // Custom input source
     velvet.WithOutput(customWriter),  // Custom output destination
     velvet.WithoutInput(),            // Disable input (for display-only)
 )
 ```
+
+**Note:** Velvet always uses the alternate screen buffer because the renderer uses absolute cursor positioning. This prevents corruption of the terminal scrollback and previous content.
 
 ## Examples
 

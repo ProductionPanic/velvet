@@ -35,20 +35,12 @@ type Program struct {
 	width, height int
 
 	// Options
-	altScreen      bool
 	mouseAllMotion bool
 	inputEnabled   bool
 }
 
 // ProgramOption is a functional option for configuring a Program
 type ProgramOption func(*Program)
-
-// WithAltScreen enables the alternate screen buffer
-func WithAltScreen(enable bool) ProgramOption {
-	return func(p *Program) {
-		p.altScreen = enable
-	}
-}
 
 // WithMouseAllMotion enables mouse motion events
 func WithMouseAllMotion(enable bool) ProgramOption {
@@ -87,7 +79,6 @@ func NewProgram(model Model, opts ...ProgramOption) *Program {
 		msgs:         make(chan Msg),
 		cmds:         make(chan Cmd),
 		quit:         make(chan struct{}),
-		altScreen:    true,
 		inputEnabled: true,
 	}
 
@@ -117,11 +108,10 @@ func (p *Program) Run() error {
 		defer restore()
 	}
 
-	// Setup alternate screen if enabled
-	if p.altScreen {
-		ansi.Print(ansi.EnterAltScreen)
-		defer ansi.Print(ansi.ExitAltScreen)
-	}
+	// Alternate screen is required because the renderer uses absolute cursor positioning.
+	// Without it, the terminal scrollback would be corrupted and previous content destroyed.
+	ansi.Print(ansi.EnterAltScreen)
+	defer ansi.Print(ansi.ExitAltScreen)
 
 	ansi.Print(
 		ansi.ClearScreen,

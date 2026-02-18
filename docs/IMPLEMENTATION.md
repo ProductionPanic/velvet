@@ -43,11 +43,12 @@ A bubbletea-style Program architecture for Velvet that manages terminal applicat
 
 ### Program Options
 
-- `WithAltScreen(bool)` - toggle alternate screen buffer
 - `WithMouseAllMotion(bool)` - mouse support (prepared for future)
 - `WithInput(io.Reader)` - custom input source
 - `WithOutput(io.Writer)` - custom output destination
 - `WithoutInput()` - disable input for display-only mode
+
+**Note:** The alternate screen buffer is always enabled because the renderer uses absolute cursor positioning.
 
 ### Examples
 
