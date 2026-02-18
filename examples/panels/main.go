@@ -59,10 +59,10 @@ func (m model) Update(msg velvet.Msg) (velvet.Model, velvet.Cmd) {
 }
 
 func (m model) View() *buffer.Grid {
-	b := buffer.NewGrid(m.width, m.height)
-
-	b.Place(m.leftCounter.View().Render(), buffer.AlignLeft, buffer.AlignTop)
-	b.Place(m.rightCounter.View().Render(), buffer.AlignRight, buffer.AlignTop)
+	b := velvet.NewFlexContainer().SetSize(m.width, m.height).Add(
+		m.leftCounter.View(),
+		m.rightCounter.View(),
+	).Render()
 
 	if m.showModal {
 		b.Place(m.modal.View().Render(), buffer.AlignCenter, buffer.AlignMiddle)

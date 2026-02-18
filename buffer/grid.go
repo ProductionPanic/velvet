@@ -2,21 +2,6 @@ package buffer
 
 import "github.com/ProductionPanic/velvet/style"
 
-type AlignX int
-type AlignY int
-
-const (
-	AlignLeft AlignX = iota
-	AlignCenter
-	AlignRight
-)
-
-const (
-	AlignTop AlignY = iota
-	AlignMiddle
-	AlignBottom
-)
-
 type Grid struct {
 	Cells  []Cell
 	Width  int
@@ -92,7 +77,7 @@ func (g *Grid) Clear() {
 	}
 }
 
-func (g *Grid) Place(b *Grid, x AlignX, y AlignY) {
+func (g *Grid) Place(b *Grid, x PositionX, y PositionY) {
 	var startX, startY int
 	switch x {
 	case AlignLeft:
@@ -101,6 +86,8 @@ func (g *Grid) Place(b *Grid, x AlignX, y AlignY) {
 		startX = (g.Width - b.Width) / 2
 	case AlignRight:
 		startX = g.Width - b.Width
+	default:
+		startX = int(x)
 	}
 
 	switch y {
@@ -110,6 +97,8 @@ func (g *Grid) Place(b *Grid, x AlignX, y AlignY) {
 		startY = (g.Height - b.Height) / 2
 	case AlignBottom:
 		startY = g.Height - b.Height
+	default:
+		startY = int(y)
 	}
 
 	for by := 0; by < b.Height; by++ {
