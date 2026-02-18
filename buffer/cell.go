@@ -6,32 +6,32 @@ import (
 )
 
 type Cell struct {
-	Rune      rune
+	Content   string // changed from rune to string to support multi-rune grapheme clusters
 	Style     *style.CellStyle
 	runeWidth int
 }
 
 func NewCell(r rune, s *style.CellStyle) Cell {
 	return Cell{
-		Rune:  r,
-		Style: s,
+		Content: string(r),
+		Style:   s,
 	}
 }
 
 func EmptyCell() Cell {
 	return Cell{
-		Rune:  ' ',
-		Style: style.DefaultCellStyle(),
+		Content: " ",
+		Style:   style.DefaultCellStyle(),
 	}
 }
 
 func (c Cell) Width() int {
 	if c.runeWidth == 0 {
-		c.runeWidth = runewidth.RuneWidth(c.Rune)
+		c.runeWidth = runewidth.StringWidth(c.Content)
 	}
 	return c.runeWidth
 }
 
 func (c Cell) IsSpace() bool {
-	return c.Rune == ' '
+	return c.Content == " "
 }

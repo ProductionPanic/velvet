@@ -45,21 +45,21 @@ func (g *Grid) Get(x, y int) Cell {
 	return g.Cells[g.index(x, y)]
 }
 
-func (g *Grid) SetRune(x, y int, r rune) {
+func (g *Grid) SetRune(x, y int, c string) {
 	if !g.isInBounds(x, y) {
 		return
 	}
 	cell := g.Get(x, y)
-	cell.Rune = r
+	cell.Content = c
 	g.Set(x, y, cell)
 }
 
-func (g *Grid) SetEmptyCells(r rune, s *style.CellStyle) {
+func (g *Grid) SetEmptyCells(c string, s *style.CellStyle) {
 	for i := range g.Cells {
-		if g.Cells[i].Rune == ' ' {
+		if g.Cells[i].Content == " " {
 			g.Cells[i] = Cell{
-				Rune:  r,
-				Style: s,
+				Content: c,
+				Style:   s,
 			}
 		}
 	}

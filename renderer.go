@@ -44,7 +44,7 @@ func (r *Renderer) outputCell(cell buffer.Cell, x, y int, sb *strings.Builder) {
 		ansi.Print(ansi.Underline)
 	}
 
-	sb.WriteRune(cell.Rune)
+	sb.WriteString(cell.Content)
 
 	sb.WriteString(ansi.Reset) // Reset styles after each cell to avoid style bleed
 

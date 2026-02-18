@@ -7,6 +7,7 @@ import (
 	"github.com/ProductionPanic/velvet/style"
 	"github.com/ProductionPanic/velvet/style/color"
 	"github.com/mattn/go-runewidth"
+	"github.com/rivo/uniseg"
 )
 
 type Container struct {
@@ -191,18 +192,26 @@ func (c *Container) parseLines(input string) [][]buffer.Cell {
 		var cells []buffer.Cell
 		var inStyle bool
 		var styleValue string
-		for _, r := range line {
-			if r == '[' {
+		var currentStyleValue string
+
+		// Use grapheme cluster iterator to properly handle emojis and multi-codepoint characters
+		gr := uniseg.NewGraphemes(line)
+		for gr.Next() {
+			cluster := gr.Str()
+
+			// Check if this is a style tag opener
+			if cluster == "[" {
 				inStyle = true
 				styleValue = ""
-			} else if r == ']' && inStyle {
+			} else if cluster == "]" && inStyle {
 				inStyle = false
+				currentStyleValue = styleValue
 			} else if inStyle {
-				styleValue += string(r)
+				styleValue += cluster
 			} else {
 				cells = append(cells, buffer.Cell{
-					Rune:  r,
-					Style: c.updateStyle(currentStyle.Copy(), styleValue),
+					Content: cluster,
+					Style:   c.updateStyle(currentStyle.Copy(), currentStyleValue),
 				})
 			}
 		}
@@ -242,7 +251,7 @@ func (c *Container) applyTextWrap(lines [][]buffer.Cell, fixedContentWidth int, 
 						currentLine = append(currentLine, cell)
 						lineWidth += cellWidth
 
-						if cell.Rune == ' ' {
+						if cell.Content == "" {
 							lastSpaceIndex = len(currentLine) - 1
 						}
 						if i == len(line)-1 && len(currentLine) > 0 {
@@ -323,7 +332,7 @@ func (c *Container) applyTextWrap(lines [][]buffer.Cell, fixedContentWidth int, 
 						currentLine = append(currentLine, cell)
 						lineWidth += cellWidth
 
-						if cell.Rune == ' ' {
+						if cell.Content == "" {
 							lastSpaceIndex = len(currentLine) - 1
 						}
 						if i == len(line)-1 && len(currentLine) > 0 {
@@ -410,32 +419,34 @@ func (c *Container) Render(input string) *buffer.Grid {
 
 	grid := buffer.NewGrid(gridWidth, gridHeight)
 
-	grid.SetEmptyCells(' ', &style.CellStyle{Fg: c.foreground, Bg: c.background})
+	grid.SetEmptyCells("", &style.CellStyle{Fg: c.foreground, Bg: c.background})
 
 	// set content
 	for y, line := range parsedLines {
-		for x, r := range line {
-			grid.Set(x+c.getExtraWidth()/2, y+c.getExtraHeight()/2, buffer.Cell{
-				Rune:  r.Rune,
-				Style: r.Style,
+		col := 0 // track actual column position (accounts for wide characters)
+		for _, r := range line {
+			grid.Set(col+c.getExtraWidth()/2, y+c.getExtraHeight()/2, buffer.Cell{
+				Content: r.Content,
+				Style:   r.Style,
 			})
+			col += r.Width() // advance by the character's display width
 		}
 	}
 
 	// set border
 	if c.border != (style.BorderStyle{}) {
 		for x := 0; x < gridWidth; x++ {
-			grid.Set(x, 0, buffer.Cell{Rune: rune(c.border.Top), Style: &style.CellStyle{Fg: c.borderColor, Bg: c.background}})
-			grid.Set(x, gridHeight-1, buffer.Cell{Rune: c.border.Bottom, Style: &style.CellStyle{Fg: c.borderColor, Bg: c.background}})
+			grid.Set(x, 0, buffer.Cell{Content: c.border.Top, Style: &style.CellStyle{Fg: c.borderColor, Bg: c.background}})
+			grid.Set(x, gridHeight-1, buffer.Cell{Content: c.border.Bottom, Style: &style.CellStyle{Fg: c.borderColor, Bg: c.background}})
 		}
 		for y := 0; y < gridHeight; y++ {
-			grid.Set(0, y, buffer.Cell{Rune: c.border.Left, Style: &style.CellStyle{Fg: c.borderColor, Bg: c.background}})
-			grid.Set(gridWidth-1, y, buffer.Cell{Rune: c.border.Right, Style: &style.CellStyle{Fg: c.borderColor, Bg: c.background}})
+			grid.Set(0, y, buffer.Cell{Content: c.border.Left, Style: &style.CellStyle{Fg: c.borderColor, Bg: c.background}})
+			grid.Set(gridWidth-1, y, buffer.Cell{Content: c.border.Right, Style: &style.CellStyle{Fg: c.borderColor, Bg: c.background}})
 		}
-		grid.Set(0, 0, buffer.Cell{Rune: c.border.TopLeft, Style: &style.CellStyle{Fg: c.borderColor, Bg: c.background}})
-		grid.Set(gridWidth-1, 0, buffer.Cell{Rune: c.border.TopRight, Style: &style.CellStyle{Fg: c.borderColor, Bg: c.background}})
-		grid.Set(0, gridHeight-1, buffer.Cell{Rune: c.border.BottomLeft, Style: &style.CellStyle{Fg: c.borderColor, Bg: c.background}})
-		grid.Set(gridWidth-1, gridHeight-1, buffer.Cell{Rune: c.border.BottomRight, Style: &style.CellStyle{Fg: c.borderColor, Bg: c.background}})
+		grid.Set(0, 0, buffer.Cell{Content: c.border.TopLeft, Style: &style.CellStyle{Fg: c.borderColor, Bg: c.background}})
+		grid.Set(gridWidth-1, 0, buffer.Cell{Content: c.border.TopRight, Style: &style.CellStyle{Fg: c.borderColor, Bg: c.background}})
+		grid.Set(0, gridHeight-1, buffer.Cell{Content: c.border.BottomLeft, Style: &style.CellStyle{Fg: c.borderColor, Bg: c.background}})
+		grid.Set(gridWidth-1, gridHeight-1, buffer.Cell{Content: c.border.BottomRight, Style: &style.CellStyle{Fg: c.borderColor, Bg: c.background}})
 	}
 
 	return grid
