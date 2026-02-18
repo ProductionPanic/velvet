@@ -41,6 +41,7 @@ func (m model) Update(msg velvet.Msg) (velvet.Model, velvet.Cmd) {
 			if m.activeCounter < 0 {
 				m.activeCounter = 2
 			}
+			activeChanged = true
 		case "enter":
 			m.showModal = !m.showModal
 			return m, nil
