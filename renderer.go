@@ -59,7 +59,9 @@ func (r *Renderer) Flush() {
 			backCell := r.back.Get(x, y)
 
 			if frontCell != backCell {
-				r.outputCell(backCell, x, y, &sb)
+				if backCell.Content != "" {
+					r.outputCell(backCell, x, y, &sb)
+				}
 				r.front.Set(x, y, backCell)
 			}
 		}

@@ -425,11 +425,23 @@ func (c *Container) Render(input string) *buffer.Grid {
 	for y, line := range parsedLines {
 		col := 0 // track actual column position (accounts for wide characters)
 		for _, r := range line {
+			// Set the main cell
 			grid.Set(col+c.getExtraWidth()/2, y+c.getExtraHeight()/2, buffer.Cell{
 				Content: r.Content,
 				Style:   r.Style,
 			})
-			col += r.Width() // advance by the character's display width
+
+			// For wide characters (width > 1), fill continuation cells with spaces
+			// to prevent overlap
+			charWidth := r.Width()
+			for i := 1; i < charWidth; i++ {
+				grid.Set(col+i+c.getExtraWidth()/2, y+c.getExtraHeight()/2, buffer.Cell{
+					Content: "",
+					Style:   r.Style,
+				})
+			}
+
+			col += charWidth // advance by the character's display width
 		}
 	}
 
