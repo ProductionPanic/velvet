@@ -8,10 +8,11 @@ import (
 type model struct {
 	width, height int
 	leftCounter   CounterComponent
+	middleCounter CounterComponent
 	rightCounter  CounterComponent
+	activeCounter int
 	modal         ModalComponent
 	showModal     bool
-	isLeftActive  bool
 }
 
 func (m model) Init() velvet.Cmd {
@@ -19,27 +20,27 @@ func (m model) Init() velvet.Cmd {
 }
 
 func (m model) Update(msg velvet.Msg) (velvet.Model, velvet.Cmd) {
+	var activeChanged bool = false
+
 	switch msg := msg.(type) {
 	case velvet.WindowSizeMsg:
 		m.width = msg.Width
 		m.height = msg.Height
-		m.leftCounter.Width, m.leftCounter.Height = m.width/2, m.height
-		m.rightCounter.Width, m.rightCounter.Height = m.width/2, m.height
 		return m, nil
 
 	case velvet.KeyMsg:
 		switch msg.String() {
 		case "tab":
-			if m.isLeftActive {
-				m.isLeftActive = false
-				m.leftCounter.IsActive = false
-				m.rightCounter.IsActive = true
-			} else {
-				m.isLeftActive = true
-				m.leftCounter.IsActive = true
-				m.rightCounter.IsActive = false
+			m.activeCounter++
+			if m.activeCounter > 2 {
+				m.activeCounter = 0
 			}
-			return m, nil
+			activeChanged = true
+		case "shift+tab":
+			m.activeCounter--
+			if m.activeCounter < 0 {
+				m.activeCounter = 2
+			}
 		case "enter":
 			m.showModal = !m.showModal
 			return m, nil
@@ -48,10 +49,20 @@ func (m model) Update(msg velvet.Msg) (velvet.Model, velvet.Cmd) {
 		}
 	}
 
+	if activeChanged {
+		m.leftCounter.IsActive = m.activeCounter == 0
+		m.middleCounter.IsActive = m.activeCounter == 1
+		m.rightCounter.IsActive = m.activeCounter == 2
+		return m, nil
+	}
+
 	var cmd velvet.Cmd
-	if m.isLeftActive {
+	switch m.activeCounter {
+	case 0:
 		m.leftCounter, cmd = m.leftCounter.Update(msg)
-	} else {
+	case 1:
+		m.middleCounter, cmd = m.middleCounter.Update(msg)
+	case 2:
 		m.rightCounter, cmd = m.rightCounter.Update(msg)
 	}
 
@@ -59,10 +70,14 @@ func (m model) Update(msg velvet.Msg) (velvet.Model, velvet.Cmd) {
 }
 
 func (m model) View() *buffer.Grid {
-	b := velvet.NewFlexContainer().SetSize(m.width, m.height).Add(
-		m.leftCounter.View(),
-		m.rightCounter.View(),
-	).Render()
+	b := velvet.NewFlexContainer().
+		SetSize(m.width, m.height).
+		Add(
+			m.leftCounter.View(),
+			m.middleCounter.View(),
+			m.rightCounter.View(),
+		).
+		Render()
 
 	if m.showModal {
 		b.Place(m.modal.View().Render(), buffer.AlignCenter, buffer.AlignMiddle)
@@ -73,14 +88,14 @@ func (m model) View() *buffer.Grid {
 
 func initialModel() model {
 	return model{
-		leftCounter:  CounterComponent{Title: "Left Counter", IsActive: true},
-		rightCounter: CounterComponent{Title: "Right Counter"},
+		leftCounter:   CounterComponent{Title: "Left Counter", IsActive: true},
+		middleCounter: CounterComponent{Title: "Middle Counter"},
+		rightCounter:  CounterComponent{Title: "Right Counter"},
 		modal: ModalComponent{
 			Title:   "Modal Title",
 			Content: "This is a modal. Press Enter to close.",
 			IsError: false,
 		},
-		isLeftActive: true,
 	}
 }
 

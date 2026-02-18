@@ -51,17 +51,39 @@ func (fc *FlexContainer) Render() *buffer.Grid {
 
 	if fc.horizontal {
 		itemWidth := fc.width / len(fc.items)
+		leftover := fc.width % len(fc.items)
+		gap := 0
+		if len(fc.items) > 1 {
+			gap = leftover / (len(fc.items) - 1)
+		}
+
+		x := 0
 		for i, item := range fc.items {
 			item.Width(itemWidth).Height(fc.height)
 			itemGrid := item.Render()
-			out.Place(itemGrid, buffer.PositionX(i*itemWidth), buffer.AlignTop)
+			out.Place(itemGrid, buffer.PositionX(x), buffer.AlignTop)
+			x += itemWidth
+			if i < len(fc.items)-1 {
+				x += gap
+			}
 		}
 	} else {
 		itemHeight := fc.height / len(fc.items)
+		leftover := fc.height % len(fc.items)
+		gap := 0
+		if len(fc.items) > 1 {
+			gap = leftover / (len(fc.items) - 1)
+		}
+
+		y := 0
 		for i, item := range fc.items {
 			item.Width(fc.width).Height(itemHeight)
 			itemGrid := item.Render()
-			out.Place(itemGrid, buffer.AlignLeft, buffer.PositionY(i*itemHeight))
+			out.Place(itemGrid, buffer.AlignLeft, buffer.PositionY(y))
+			y += itemHeight
+			if i < len(fc.items)-1 {
+				y += gap
+			}
 		}
 	}
 
