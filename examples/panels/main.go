@@ -78,6 +78,7 @@ func initialModel() model {
 		modal: ModalComponent{
 			Title:   "Modal Title",
 			Content: "This is a modal. Press Enter to close.",
+			IsError: false,
 		},
 		isLeftActive: true,
 	}
