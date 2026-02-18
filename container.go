@@ -15,6 +15,7 @@ type Container struct {
 		top, right, bottom, left int
 	}
 	border           style.BorderStyle
+	content          string
 	borderTextTop    string // for when you want to set an inline text in the border (e.g. ──[ Title ]──)
 	borderTextBott   string // same but for in the bottom
 	borderTextMargin int    // margin between border text and border line
@@ -36,6 +37,11 @@ func NewContainer() *Container {
 func (c *Container) Copy() *Container {
 	newContainer := *c
 	return &newContainer
+}
+
+func (c *Container) Content(content string) *Container {
+	c.content = content
+	return c
 }
 
 func (c *Container) Padding(p ...int) *Container {
@@ -430,7 +436,8 @@ func (c *Container) applyTextWrap(lines [][]buffer.Cell, fixedContentWidth int, 
 	return wrappedLines
 }
 
-func (c *Container) Render(input string) *buffer.Grid {
+func (c *Container) Render(s ...string) *buffer.Grid {
+	input := c.content + strings.Join(s, "\n")
 	// first we check if there is any constraints on the width and height.
 	var fixedContentWidth, fixedContentHeight int
 	if c.width > 0 {

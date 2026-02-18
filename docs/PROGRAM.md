@@ -74,7 +74,7 @@ func (m model) Update(msg velvet.Msg) (velvet.Model, velvet.Cmd) {
         m.height = msg.Height
     
     case velvet.KeyMsg:
-        if msg.Type == velvet.KeyCtrlC {
+        if msg.String() == "ctrl+c" {
             return m, func() velvet.Msg {
                 return velvet.Quit()
             }
@@ -98,26 +98,59 @@ func main() {
 }
 ```
 
-## Key Types
+## Key Messages
 
 ### KeyMsg
 
 ```go
 type KeyMsg struct {
-    Type  KeyType
+    Key   string
     Runes []rune
     Alt   bool
 }
 ```
 
-Key types include:
-- `KeyRunes` - Regular characters
-- `KeyEnter`, `KeyBackspace`, `KeyDelete`
-- `KeyUp`, `KeyDown`, `KeyLeft`, `KeyRight`
-- `KeyTab`, `KeyShiftTab`
-- `KeyHome`, `KeyEnd`, `KeyPgUp`, `KeyPgDown`
-- `KeyEsc`, `KeyCtrlC`, `KeyCtrlD`, `KeyCtrlZ`
-- `KeySpace`
+**Methods:**
+- `String()` - Returns the key string (with "alt+" prefix if Alt is true)
+- `Matches(keys ...string)` - Check if key matches any of the provided strings
+
+**Key Strings:**
+
+Special Keys:
+- `"enter"`, `"backspace"`, `"delete"`, `"esc"`
+- `"tab"`, `"shift+tab"`
+- `" "` (space)
+
+Arrow Keys:
+- `"up"`, `"down"`, `"left"`, `"right"`
+
+Navigation:
+- `"home"`, `"end"`, `"pgup"`, `"pgdown"`
+
+Control Keys:
+- `"ctrl+c"`, `"ctrl+d"`, `"ctrl+z"`
+
+Regular Characters:
+- Single characters like `"a"`, `"5"`, `"@"`
+- UTF-8 characters and emoji
+
+Alt Combinations:
+- `"alt+a"`, `"alt+b"`, etc.
+
+**Usage:**
+```go
+case velvet.KeyMsg:
+    switch msg.String() {
+    case "ctrl+c", "esc":
+        return m, velvet.Quit
+    case "enter":
+        // Handle enter
+    case "a", "b", "c":
+        // Handle specific characters
+    default:
+        // Handle other keys, use msg.Runes for text input
+    }
+```
 
 ## Program Options
 

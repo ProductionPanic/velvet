@@ -36,7 +36,7 @@ func (m model) Update(msg velvet.Msg) (velvet.Model, velvet.Cmd) {
     case velvet.WindowSizeMsg:
         m.width, m.height = msg.Width, msg.Height
     case velvet.KeyMsg:
-        if msg.Type == velvet.KeyCtrlC || msg.Type == velvet.KeyEsc {
+        if msg.Matches("ctrl+c", "esc") {
             return m, func() velvet.Msg { return velvet.Quit() }
         }
     }

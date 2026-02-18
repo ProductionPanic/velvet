@@ -10,10 +10,11 @@ A bubbletea-style Program architecture for Velvet that manages terminal applicat
 
 1. **msg.go** - Message types for the event system
    - `Msg` interface
-   - `KeyMsg` with full keyboard support (arrows, ctrl keys, etc.)
+   - `KeyMsg` with string-based key matching (e.g., "ctrl+c", "tab")
+   - Full keyboard support (arrows, ctrl keys, etc.)
    - `WindowSizeMsg` for terminal resize events
    - `QuitMsg`, `TickMsg`, `ErrMsg`
-   - `KeyType` constants for all key types
+   - Helper methods: `String()`, `Matches()`
 
 2. **cmd.go** - Command system for async operations
    - `Cmd` type (function that returns a Msg)

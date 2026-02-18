@@ -34,7 +34,7 @@ func (m model) Update(msg velvet.Msg) (velvet.Model, velvet.Cmd) {
         m.width = msg.Width
         m.height = msg.Height
     case velvet.KeyMsg:
-        if msg.Type == velvet.KeyCtrlC {
+        if msg.String() == "ctrl+c" {
             return m, func() velvet.Msg { return velvet.Quit() }
         }
     }
@@ -66,7 +66,8 @@ func main() {
 ### Quit on Escape or Ctrl+C
 ```go
 case velvet.KeyMsg:
-    if msg.Type == velvet.KeyCtrlC || msg.Type == velvet.KeyEsc {
+    switch msg.String() {
+    case "ctrl+c", "esc":
         return m, func() velvet.Msg { return velvet.Quit() }
     }
 ```
@@ -105,31 +106,55 @@ func (m model) View() *buffer.Grid {
 ### Handle Text Input
 ```go
 case velvet.KeyMsg:
-    switch msg.Type {
-    case velvet.KeyRunes:
-        m.input += string(msg.Runes)
-    case velvet.KeyBackspace:
+    switch msg.String() {
+    case "backspace":
         if len(m.input) > 0 {
             m.input = m.input[:len(m.input)-1]
         }
-    case velvet.KeyEnter:
+    case "enter":
         // process input
+    default:
+        // Regular character input
+        if len(msg.Runes) > 0 {
+            m.input += string(msg.Runes)
+        }
     }
 ```
 
-## Key Types Reference
+## Key Reference
 
-- `KeyRunes` - Regular text (check `msg.Runes`)
-- `KeyEnter` - Enter/Return
-- `KeyBackspace` - Backspace
-- `KeyDelete` - Delete
-- `KeyUp/Down/Left/Right` - Arrow keys
-- `KeyTab`, `KeyShiftTab` - Tab keys
-- `KeyHome`, `KeyEnd` - Home/End
-- `KeyPgUp`, `KeyPgDown` - Page up/down
-- `KeyEsc` - Escape
-- `KeyCtrlC`, `KeyCtrlD`, `KeyCtrlZ` - Ctrl combinations
-- `KeySpace` - Spacebar
+The `KeyMsg.String()` method returns string representations of keys that can be used in switch statements:
+
+**Special Keys:**
+- `"enter"` - Enter/Return key
+- `"backspace"` - Backspace key
+- `"delete"` - Delete key
+- `"esc"` - Escape key
+- `"tab"` - Tab key
+- `"shift+tab"` - Shift+Tab key
+- `" "` - Spacebar (literal space character)
+
+**Arrow Keys:**
+- `"up"`, `"down"`, `"left"`, `"right"` - Arrow keys
+
+**Navigation Keys:**
+- `"home"`, `"end"` - Home/End keys
+- `"pgup"`, `"pgdown"` - Page up/down keys
+
+**Control Keys:**
+- `"ctrl+c"`, `"ctrl+d"`, `"ctrl+z"` - Ctrl combinations
+
+**Regular Characters:**
+- Single characters like `"a"`, `"5"`, `"@"` - Regular text input
+- UTF-8 characters and emoji are supported
+
+**Alt Combinations:**
+- Alt key combinations return `"alt+X"` format (e.g., `"alt+a"`)
+
+**Accessing Raw Input:**
+- Use `msg.Runes` to get the raw rune slice for text input
+- Use `msg.Alt` to check if Alt modifier is pressed
+- Use `msg.Matches("key1", "key2", ...)` helper to check multiple keys
 
 ## Program Options
 

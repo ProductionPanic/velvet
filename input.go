@@ -38,23 +38,24 @@ func parseInput(b []byte) Msg {
 	if len(b) == 1 {
 		switch b[0] {
 		case 3: // Ctrl+C
-			return KeyMsg{Type: KeyCtrlC}
+			return KeyMsg{Key: "ctrl+c"}
 		case 4: // Ctrl+D
-			return KeyMsg{Type: KeyCtrlD}
+			return KeyMsg{Key: "ctrl+d"}
 		case 9: // Tab
-			return KeyMsg{Type: KeyTab}
+			return KeyMsg{Key: "tab"}
 		case 13, 10: // Enter/Return
-			return KeyMsg{Type: KeyEnter}
+			return KeyMsg{Key: "enter"}
 		case 27: // Escape
-			return KeyMsg{Type: KeyEsc}
+			return KeyMsg{Key: "esc"}
 		case 127, 8: // Backspace/Delete
-			return KeyMsg{Type: KeyBackspace}
+			return KeyMsg{Key: "backspace"}
 		case 26: // Ctrl+Z
-			return KeyMsg{Type: KeyCtrlZ}
+			return KeyMsg{Key: "ctrl+z"}
 		case 32: // Space
-			return KeyMsg{Type: KeySpace, Runes: []rune{' '}}
+			return KeyMsg{Key: " ", Runes: []rune{' '}}
 		default:
-			return KeyMsg{Type: KeyRunes, Runes: []rune{rune(b[0])}}
+			r := rune(b[0])
+			return KeyMsg{Key: string(r), Runes: []rune{r}}
 		}
 	}
 
@@ -62,36 +63,37 @@ func parseInput(b []byte) Msg {
 	if b[0] == 27 {
 		if len(b) == 2 {
 			// Alt + key
-			return KeyMsg{Type: KeyRunes, Runes: []rune{rune(b[1])}, Alt: true}
+			r := rune(b[1])
+			return KeyMsg{Key: string(r), Runes: []rune{r}, Alt: true}
 		}
 
 		if len(b) >= 3 && b[1] == '[' {
 			switch b[2] {
 			case 'A':
-				return KeyMsg{Type: KeyUp}
+				return KeyMsg{Key: "up"}
 			case 'B':
-				return KeyMsg{Type: KeyDown}
+				return KeyMsg{Key: "down"}
 			case 'C':
-				return KeyMsg{Type: KeyRight}
+				return KeyMsg{Key: "right"}
 			case 'D':
-				return KeyMsg{Type: KeyLeft}
+				return KeyMsg{Key: "left"}
 			case 'H':
-				return KeyMsg{Type: KeyHome}
+				return KeyMsg{Key: "home"}
 			case 'F':
-				return KeyMsg{Type: KeyEnd}
+				return KeyMsg{Key: "end"}
 			case 'Z':
-				return KeyMsg{Type: KeyShiftTab}
+				return KeyMsg{Key: "shift+tab"}
 			case '3':
 				if len(b) >= 4 && b[3] == '~' {
-					return KeyMsg{Type: KeyDelete}
+					return KeyMsg{Key: "delete"}
 				}
 			case '5':
 				if len(b) >= 4 && b[3] == '~' {
-					return KeyMsg{Type: KeyPgUp}
+					return KeyMsg{Key: "pgup"}
 				}
 			case '6':
 				if len(b) >= 4 && b[3] == '~' {
-					return KeyMsg{Type: KeyPgDown}
+					return KeyMsg{Key: "pgdown"}
 				}
 			}
 		}
@@ -99,5 +101,5 @@ func parseInput(b []byte) Msg {
 
 	// Multi-byte UTF-8 character
 	runes := []rune(string(b))
-	return KeyMsg{Type: KeyRunes, Runes: runes}
+	return KeyMsg{Key: string(runes), Runes: runes}
 }

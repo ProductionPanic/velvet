@@ -7,42 +7,28 @@ type Msg interface{}
 
 // KeyMsg represents a keyboard event
 type KeyMsg struct {
-	Type  KeyType
+	Key   string
 	Runes []rune
 	Alt   bool
 }
 
-// KeyType represents a key press type
-type KeyType int
-
-const (
-	KeyRunes KeyType = iota
-	KeyEnter
-	KeyBackspace
-	KeyDelete
-	KeyUp
-	KeyDown
-	KeyLeft
-	KeyRight
-	KeyTab
-	KeyShiftTab
-	KeyHome
-	KeyEnd
-	KeyPgUp
-	KeyPgDown
-	KeyEsc
-	KeyCtrlC
-	KeyCtrlD
-	KeyCtrlZ
-	KeySpace
-)
-
 // String returns a string representation of the key
 func (k KeyMsg) String() string {
-	if k.Type == KeyRunes {
-		return string(k.Runes)
+	if k.Alt && k.Key != "" {
+		return "alt+" + k.Key
 	}
-	return ""
+	return k.Key
+}
+
+// Matches checks if the key matches any of the provided key strings
+func (k KeyMsg) Matches(keys ...string) bool {
+	keyStr := k.String()
+	for _, key := range keys {
+		if keyStr == key {
+			return true
+		}
+	}
+	return false
 }
 
 // WindowSizeMsg is sent when the terminal window is resized

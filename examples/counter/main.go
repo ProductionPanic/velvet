@@ -28,16 +28,16 @@ func (m model) Update(msg velvet.Msg) (velvet.Model, velvet.Cmd) {
 	case velvet.KeyMsg:
 		m.lastKey = fmt.Sprintf("%v", msg)
 
-		switch msg.Type {
-		case velvet.KeyCtrlC, velvet.KeyEsc:
+		switch msg.String() {
+		case "ctrl+c", "esc":
 			return m, func() velvet.Msg {
 				return velvet.Quit()
 			}
-		case velvet.KeyUp:
+		case "up":
 			m.counter++
-		case velvet.KeyDown:
+		case "down":
 			m.counter--
-		case velvet.KeySpace:
+		case " ":
 			// Reset counter on space
 			m.counter = 0
 		}
