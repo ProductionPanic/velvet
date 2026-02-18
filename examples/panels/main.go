@@ -49,25 +49,34 @@ func (m model) Update(msg velvet.Msg) (velvet.Model, velvet.Cmd) {
 func (m model) View() *buffer.Grid {
 	b := buffer.NewGrid(m.width, m.height)
 
-	// Create a container
-	container := velvet.NewContainer().
-		Foreground(color.FromHex("#ffffff")).
-		Background(color.FromHex("#111")).
-		Padding(1, 2).
-		Border(style.DoubleBorder()).
-		BorderColor(color.FromHex("#00ff00")).
-		Width(m.width / 2)
+	panel := velvet.NewContainer().
+		Width(m.width/2).
+		Height(m.height).
+		Border(style.RoundedBorder()).
+		BorderColor(color.FromHex("#ff00ff")).
+		Padding(0, 1).
+		Background(color.FromHex("#222")).
+		Foreground(color.FromHex("#fff"))
 
-	displayText := fmt.Sprintf(
-		"[bold,yellow]Counter Demo[]\n\n"+
+	leftPanelText := fmt.Sprintf(
+		"[bold,magenta]Left Panel[]\n\n"+
 			"counter value: [cyan,bold]%d[]\n"+
 			"[dim]Press SPACE to reset\n"+
 			"Press ESC or Ctrl+C to quit[]",
 		m.counter,
 	)
 
-	rendered := container.Render(displayText)
-	b.Place(rendered, buffer.AlignCenter, buffer.AlignMiddle)
+	rightPanelText := fmt.Sprintf(
+		"[bold,magenta]Right Panel[]\n\n"+
+			"Last key: [yellow,bold]%s[]\n",
+		m.lastKey,
+	)
+
+	leftPanel := panel.BorderTextTop("Counter").Render(leftPanelText)
+	rightPanel := panel.BorderTextTop("Keylogger").Render(rightPanelText)
+
+	b.Place(leftPanel, buffer.AlignLeft, buffer.AlignTop)
+	b.Place(rightPanel, buffer.AlignRight, buffer.AlignTop)
 
 	return b
 }

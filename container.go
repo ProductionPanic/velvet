@@ -14,26 +14,53 @@ type Container struct {
 	padding struct {
 		top, right, bottom, left int
 	}
-	border      style.BorderStyle
-	borderColor color.Color
-	foreground  color.Color
-	background  color.Color
-	textWrap    style.TextWrap
-	width       int
-	height      int
+	border           style.BorderStyle
+	borderTextTop    string // for when you want to set an inline text in the border (e.g. ──[ Title ]──)
+	borderTextBott   string // same but for in the bottom
+	borderTextMargin int    // margin between border text and border line
+	borderColor      color.Color
+	foreground       color.Color
+	background       color.Color
+	textWrap         style.TextWrap
+	width            int
+	height           int
 }
 
 func NewContainer() *Container {
 	return &Container{
-		textWrap: style.BreakSpaces,
+		textWrap:         style.BreakSpaces,
+		borderTextMargin: 1,
 	}
 }
 
-func (c *Container) Padding(p int) *Container {
-	c.padding.top = p
-	c.padding.right = p
-	c.padding.bottom = p
-	c.padding.left = p
+func (c *Container) Padding(p ...int) *Container {
+	if len(p) == 1 {
+		padding := p[0]
+		c.padding.top = padding
+		c.padding.right = padding
+		c.padding.bottom = padding
+		c.padding.left = padding
+	} else if len(p) == 2 {
+		c.padding.top = p[0]
+		c.padding.bottom = p[0]
+		c.padding.right = p[1]
+		c.padding.left = p[1]
+	} else if len(p) == 4 {
+		c.padding.top = p[0]
+		c.padding.right = p[1]
+		c.padding.bottom = p[2]
+		c.padding.left = p[3]
+	}
+	return c
+}
+
+func (c *Container) BorderTextTop(text string) *Container {
+	c.borderTextTop = text
+	return c
+}
+
+func (c *Container) BorderTextBottom(text string) *Container {
+	c.borderTextBott = text
 	return c
 }
 
@@ -181,12 +208,20 @@ func (c *Container) updateStyle(currentStyle *style.CellStyle, styleValue string
 	return style.ApplyTemplateStyle(parts, currentStyle.Copy())
 }
 
+func (c *Container) getContainerCellStyle() *style.CellStyle {
+	// build a cell style based on the container's foreground and background colors
+	return &style.CellStyle{
+		Fg: c.foreground,
+		Bg: c.background,
+	}
+}
+
 func (c *Container) parseLines(input string) [][]buffer.Cell {
 	lines := strings.Split(input, "\n")
 	var parsedLines [][]buffer.Cell
 
 	// here we place the current style that is set within the input string (e.g. [red], [bold], [#f03], [bg#fff], etc.) and we update it whenever we encounter a new style tag in the input string.
-	currentStyle := style.NewCellStyle()
+	currentStyle := c.getContainerCellStyle()
 
 	for _, line := range lines {
 		var cells []buffer.Cell
@@ -406,11 +441,16 @@ func (c *Container) Render(input string) *buffer.Grid {
 
 	// now we have the parsed lines, we can create a grid and render the container with the parsed lines.
 	contentWidth := c.getLongestLine(parsedLines)
-	if fixedContentWidth > 0 && contentWidth > fixedContentWidth {
+
+	// If fixed width is set, use it; otherwise use content width
+	if fixedContentWidth > 0 {
 		contentWidth = fixedContentWidth
 	}
+
 	contentHeight := len(parsedLines)
-	if fixedContentHeight > 0 && contentHeight > fixedContentHeight {
+
+	// If fixed height is set, use it; otherwise use content height
+	if fixedContentHeight > 0 {
 		contentHeight = fixedContentHeight
 	}
 
@@ -459,6 +499,37 @@ func (c *Container) Render(input string) *buffer.Grid {
 		grid.Set(gridWidth-1, 0, buffer.Cell{Content: c.border.TopRight, Style: &style.CellStyle{Fg: c.borderColor, Bg: c.background}})
 		grid.Set(0, gridHeight-1, buffer.Cell{Content: c.border.BottomLeft, Style: &style.CellStyle{Fg: c.borderColor, Bg: c.background}})
 		grid.Set(gridWidth-1, gridHeight-1, buffer.Cell{Content: c.border.BottomRight, Style: &style.CellStyle{Fg: c.borderColor, Bg: c.background}})
+	}
+
+	// if needed we set the border text (e.g. ──[ Title ]──)
+	if c.borderTextTop != "" {
+		borderText := c.borderTextTop
+		borderTextWidth := runewidth.StringWidth(borderText)
+		startX := (gridWidth-borderTextWidth)/2 - c.borderTextMargin
+		for i, r := range borderText {
+			grid.Set(startX+i, 0, buffer.Cell{Content: string(r), Style: &style.CellStyle{Fg: c.borderColor, Bg: c.background}})
+		}
+
+		// Fill spaces around the border text to prevent overlap with border lines
+		for i := 0; i < c.borderTextMargin; i++ {
+			grid.Set(startX-1-i, 0, buffer.Cell{Content: " ", Style: &style.CellStyle{Fg: c.borderColor, Bg: c.background}})
+			grid.Set(startX+borderTextWidth+i, 0, buffer.Cell{Content: " ", Style: &style.CellStyle{Fg: c.borderColor, Bg: c.background}})
+		}
+	}
+
+	if c.borderTextBott != "" {
+		borderText := c.borderTextBott
+		borderTextWidth := runewidth.StringWidth(borderText)
+		startX := (gridWidth-borderTextWidth)/2 - c.borderTextMargin
+		for i, r := range borderText {
+			grid.Set(startX+i, gridHeight-1, buffer.Cell{Content: string(r), Style: &style.CellStyle{Fg: c.borderColor, Bg: c.background}})
+		}
+
+		// Fill spaces around the border text to prevent overlap with border lines
+		for i := 0; i < c.borderTextMargin; i++ {
+			grid.Set(startX-1-i, gridHeight-1, buffer.Cell{Content: " ", Style: &style.CellStyle{Fg: c.borderColor, Bg: c.background}})
+			grid.Set(startX+borderTextWidth+i, gridHeight-1, buffer.Cell{Content: " ", Style: &style.CellStyle{Fg: c.borderColor, Bg: c.background}})
+		}
 	}
 
 	return grid
