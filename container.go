@@ -419,7 +419,7 @@ func (c *Container) Render(input string) *buffer.Grid {
 
 	grid := buffer.NewGrid(gridWidth, gridHeight)
 
-	grid.SetEmptyCells("", &style.CellStyle{Fg: c.foreground, Bg: c.background})
+	grid.SetEmptyCells(" ", &style.CellStyle{Fg: c.foreground, Bg: c.background})
 
 	// set content
 	for y, line := range parsedLines {

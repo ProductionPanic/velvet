@@ -33,15 +33,15 @@ func (r *Renderer) outputCell(cell buffer.Cell, x, y int, sb *strings.Builder) {
 	))
 
 	if cell.Style.Bold {
-		ansi.Print(ansi.Bold)
+		sb.WriteString(ansi.Bold)
 	}
 
 	if cell.Style.Italic {
-		ansi.Print(ansi.Italic)
+		sb.WriteString(ansi.Italic)
 	}
 
 	if cell.Style.Underline {
-		ansi.Print(ansi.Underline)
+		sb.WriteString(ansi.Underline)
 	}
 
 	sb.WriteString(cell.Content)
