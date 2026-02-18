@@ -44,7 +44,7 @@ func main() {
 		BorderColor(color.FromHex("#3300ff")).
 		Width(w / 4)
 
-	b.Place(component.Render("Hello, Velvet! This is a demo of the Velvet TUI library. It supports text wrapping, borders, padding, and more!"), buffer.AlignCenter, buffer.AlignMiddle)
+	b.Place(component.Render("Hello [red]velvet![] This is a demo of the Velvet [bold,cyan]TUI library[]. It supports text wrapping, borders, padding, and more!"), buffer.AlignCenter, buffer.AlignMiddle)
 
 	r.Write(b)
 

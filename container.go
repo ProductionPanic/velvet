@@ -92,12 +92,14 @@ func (c *Container) Height(height int) *Container {
 	return c
 }
 
-func (c *Container) getLongestLine(input string) int {
+func (c *Container) getLongestLine(input [][]buffer.Cell) int {
 	maxWidth := 0
-	lines := strings.Split(input, "\n")
 
-	for _, line := range lines {
-		lineWidth := runewidth.StringWidth(line)
+	for _, line := range input {
+		lineWidth := 0
+		for _, cell := range line {
+			lineWidth += cell.Width()
+		}
 		if lineWidth > maxWidth {
 			maxWidth = lineWidth
 		}
@@ -172,6 +174,213 @@ func (c *Container) wrapText(text string, maxWidth int) []string {
 	return wrappedLines
 }
 
+func (c *Container) updateStyle(currentStyle *style.CellStyle, styleValue string) *style.CellStyle {
+	parts := strings.Split(styleValue, ",") // Split the style value by comma to support multiple styles in one tag (e.g. [red,bold])
+
+	return style.ApplyTemplateStyle(parts, currentStyle.Copy())
+}
+
+func (c *Container) parseLines(input string) [][]buffer.Cell {
+	lines := strings.Split(input, "\n")
+	var parsedLines [][]buffer.Cell
+
+	// here we place the current style that is set within the input string (e.g. [red], [bold], [#f03], [bg#fff], etc.) and we update it whenever we encounter a new style tag in the input string.
+	currentStyle := style.NewCellStyle()
+
+	for _, line := range lines {
+		var cells []buffer.Cell
+		var inStyle bool
+		var styleValue string
+		for _, r := range line {
+			if r == '[' {
+				inStyle = true
+				styleValue = ""
+			} else if r == ']' && inStyle {
+				inStyle = false
+			} else if inStyle {
+				styleValue += string(r)
+			} else {
+				cells = append(cells, buffer.Cell{
+					Rune:  r,
+					Style: c.updateStyle(currentStyle.Copy(), styleValue),
+				})
+			}
+		}
+		parsedLines = append(parsedLines, cells)
+	}
+
+	return parsedLines
+}
+
+func (c *Container) applyTextWrap(lines [][]buffer.Cell, fixedContentWidth int, fixedContentHeight int) [][]buffer.Cell {
+	var wrappedLines [][]buffer.Cell
+
+	if fixedContentWidth > 0 && fixedContentHeight == 0 { // only width constraint
+		if c.textWrap == style.BreakSpaces {
+			lastSpaceIndex := -1
+			lineWidth := 0
+			currentLine := []buffer.Cell{}
+
+			for _, line := range lines {
+				for i, cell := range line {
+					cellWidth := cell.Width()
+					if cellWidth > 0 {
+						if lineWidth+cellWidth > fixedContentWidth {
+							if lastSpaceIndex != -1 {
+								wrappedLines = append(wrappedLines, currentLine[:lastSpaceIndex])
+								currentLine = currentLine[lastSpaceIndex+1:]
+								lineWidth = 0
+								for _, c := range currentLine {
+									lineWidth += c.Width()
+								}
+							} else {
+								wrappedLines = append(wrappedLines, currentLine)
+								currentLine = []buffer.Cell{}
+								lineWidth = 0
+							}
+						}
+						currentLine = append(currentLine, cell)
+						lineWidth += cellWidth
+
+						if cell.Rune == ' ' {
+							lastSpaceIndex = len(currentLine) - 1
+						}
+						if i == len(line)-1 && len(currentLine) > 0 {
+							wrappedLines = append(wrappedLines, currentLine)
+							currentLine = []buffer.Cell{}
+							lineWidth = 0
+						}
+					}
+				}
+				if len(currentLine) > 0 {
+					wrappedLines = append(wrappedLines, currentLine)
+					currentLine = []buffer.Cell{}
+					lineWidth = 0
+				}
+			}
+		} else if c.textWrap == style.BreakAny {
+			lineWidth := 0
+			currentLine := []buffer.Cell{}
+
+			for _, line := range lines {
+				for _, cell := range line {
+					cellWidth := cell.Width()
+					if cellWidth > 0 {
+						if lineWidth+cellWidth > fixedContentWidth {
+							wrappedLines = append(wrappedLines, currentLine)
+							currentLine = []buffer.Cell{}
+							lineWidth = 0
+						}
+						currentLine = append(currentLine, cell)
+						lineWidth += cellWidth
+					} else {
+						currentLine = append(currentLine, cell)
+					}
+				}
+
+				if len(currentLine) > 0 {
+					wrappedLines = append(wrappedLines, currentLine)
+					currentLine = []buffer.Cell{}
+					lineWidth = 0
+				}
+			}
+		}
+	} else if fixedContentHeight > 0 && fixedContentWidth == 0 { // only height constraint
+		if len(lines) > fixedContentHeight {
+			wrappedLines = lines[:fixedContentHeight]
+
+		} else {
+			wrappedLines = lines
+		}
+	} else if fixedContentHeight > 0 && fixedContentWidth > 0 { // both width and height constraint
+		// first we apply the width constraint and then we apply the height constraint on the wrapped lines.
+		var tempLines [][]buffer.Cell
+
+		if c.textWrap == style.BreakSpaces {
+			lastSpaceIndex := -1
+			lineWidth := 0
+			currentLine := []buffer.Cell{}
+			lastSpaceIndex = len(currentLine) - 1
+
+			for _, line := range lines {
+				for i, cell := range line {
+					cellWidth := cell.Width()
+					if cellWidth > 0 {
+						if lineWidth+cellWidth > fixedContentWidth {
+							if lastSpaceIndex != -1 {
+								tempLines = append(tempLines, currentLine[:lastSpaceIndex])
+								currentLine = currentLine[lastSpaceIndex+1:]
+								lineWidth = 0
+								for _, c := range currentLine {
+									lineWidth += c.Width()
+								}
+							} else {
+								tempLines = append(tempLines, currentLine)
+								currentLine = []buffer.Cell{}
+								lineWidth = 0
+							}
+						}
+						currentLine = append(currentLine, cell)
+						lineWidth += cellWidth
+
+						if cell.Rune == ' ' {
+							lastSpaceIndex = len(currentLine) - 1
+						}
+						if i == len(line)-1 && len(currentLine) > 0 {
+							tempLines = append(tempLines, currentLine)
+							currentLine = []buffer.Cell{}
+							lineWidth = 0
+						}
+					}
+				}
+
+				if len(currentLine) > 0 {
+					tempLines = append(tempLines, currentLine)
+					currentLine = []buffer.Cell{}
+					lineWidth = 0
+				}
+			}
+
+		} else if c.textWrap == style.BreakAny {
+			lineWidth := 0
+			currentLine := []buffer.Cell{}
+
+			for _, line := range lines {
+				for _, cell := range line {
+					cellWidth := cell.Width()
+					if cellWidth > 0 {
+						if lineWidth+cellWidth > fixedContentWidth {
+							tempLines = append(tempLines, currentLine)
+							currentLine = []buffer.Cell{}
+							lineWidth = 0
+						}
+						currentLine = append(currentLine, cell)
+						lineWidth += cellWidth
+					} else {
+						currentLine = append(currentLine, cell)
+					}
+				}
+
+				if len(currentLine) > 0 {
+					tempLines = append(tempLines, currentLine)
+					currentLine = []buffer.Cell{}
+					lineWidth = 0
+				}
+			}
+		}
+
+		if len(tempLines) > fixedContentHeight {
+			wrappedLines = tempLines[:fixedContentHeight]
+		} else {
+			wrappedLines = tempLines
+		}
+	} else {
+		wrappedLines = lines
+	}
+
+	return wrappedLines
+}
+
 func (c *Container) Render(input string) *buffer.Grid {
 	// first we check if there is any constraints on the width and height.
 	var fixedContentWidth, fixedContentHeight int
@@ -183,55 +392,11 @@ func (c *Container) Render(input string) *buffer.Grid {
 		fixedContentHeight = c.height - c.getExtraHeight()
 	}
 
-	lines := strings.Split(input, "\n")
-	var parsedLines []string
-
-	if fixedContentWidth > 0 && fixedContentHeight == 0 { // only width constraint
-		for _, line := range lines {
-			if runewidth.StringWidth(line) > fixedContentWidth {
-				parts := c.wrapText(line, fixedContentWidth) // wrap the line into multiple lines based on the fixed content width and the text wrap mode
-
-				for _, part := range parts {
-					parsedLines = append(parsedLines, part)
-				}
-			} else {
-				parsedLines = append(parsedLines, line)
-			}
-		}
-	} else if fixedContentHeight > 0 && fixedContentWidth == 0 { // only height constraint
-		if len(lines) > fixedContentHeight {
-			parsedLines = lines[:fixedContentHeight] // truncate the lines to fit the fixed content height
-		}
-	} else if fixedContentHeight > 0 && fixedContentWidth > 0 { // both width and height constraint
-		for _, line := range lines {
-			if runewidth.StringWidth(line) > fixedContentWidth {
-				parts := c.wrapText(line, fixedContentWidth) // wrap the line into multiple lines based on the fixed content width and the text wrap mode
-
-				for _, part := range parts {
-					parsedLines = append(parsedLines, part)
-				}
-
-				if len(parsedLines) >= fixedContentHeight {
-					parsedLines = parsedLines[:fixedContentHeight] // truncate the lines to fit the fixed content height
-					break
-				}
-			} else {
-				parsedLines = append(parsedLines, line)
-
-				if len(parsedLines) >= fixedContentHeight {
-					parsedLines = parsedLines[:fixedContentHeight] // truncate the lines to fit the fixed content height
-					break
-				}
-			}
-		}
-	} else {
-		parsedLines = lines
-	}
+	lines := c.parseLines(input)
+	parsedLines := c.applyTextWrap(lines, fixedContentWidth, fixedContentHeight)
 
 	// now we have the parsed lines, we can create a grid and render the container with the parsed lines.
-	contentWidth := c.getLongestLine(
-		strings.Join(parsedLines, "\n"),
-	)
+	contentWidth := c.getLongestLine(parsedLines)
 	if fixedContentWidth > 0 && contentWidth > fixedContentWidth {
 		contentWidth = fixedContentWidth
 	}
@@ -251,11 +416,8 @@ func (c *Container) Render(input string) *buffer.Grid {
 	for y, line := range parsedLines {
 		for x, r := range line {
 			grid.Set(x+c.getExtraWidth()/2, y+c.getExtraHeight()/2, buffer.Cell{
-				Rune: r,
-				Style: &style.CellStyle{
-					Fg: c.foreground,
-					Bg: c.background,
-				},
+				Rune:  r.Rune,
+				Style: r.Style,
 			})
 		}
 	}

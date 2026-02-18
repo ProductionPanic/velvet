@@ -49,3 +49,8 @@ func (s *CellStyle) Copy() *CellStyle {
 		Underline: s.Underline,
 	}
 }
+
+func NewCellStyle() *CellStyle {
+	return DefaultCellStyle()
+
+}
