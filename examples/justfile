@@ -1,0 +1,17 @@
+list:
+    @just --list
+
+_run example:
+    cd ./{{example}} && go run .
+
+run-true-color example:
+    COLORTERM=truecolor just _run {{example}}
+
+run-256-color example:
+    COLORTERM="" TERM=xterm-256color just _run {{example}}
+
+run-16-color example:
+    COLORTERM="" TERM=xterm just _run {{example}}
+
+run example color_int="true":
+    just {{ if color_int == "256" { "run-256-color" } else if color_int == "16" { "run-16-color" } else { "run-true-color" } }} {{example}}

@@ -7,13 +7,15 @@ import (
 
 	"github.com/ProductionPanic/velvet/ansi"
 	"github.com/ProductionPanic/velvet/buffer"
+	"github.com/ProductionPanic/velvet/terminal"
 )
 
 type Renderer struct {
-	Out           io.Writer
-	front         *buffer.Grid
-	back          *buffer.Grid
-	width, height int
+	Out             io.Writer
+	front           *buffer.Grid
+	back            *buffer.Grid
+	width, height   int
+	colorCapability terminal.ColorCapability
 }
 
 // replace the backbuffer
@@ -28,8 +30,8 @@ func (r *Renderer) Clear() {
 func (r *Renderer) outputCell(cell buffer.Cell, x, y int, sb *strings.Builder) {
 	sb.WriteString(ansi.Combine(
 		ansi.SetCursorPosition(x+1, y+1), // ANSI escape codes are 1-indexed)
-		ansi.ForegroundColor(cell.Style.Fg),
-		ansi.BackgroundColor(cell.Style.Bg),
+		ansi.ForegroundColorAuto(cell.Style.Fg, r.colorCapability),
+		ansi.BackgroundColorAuto(cell.Style.Bg, r.colorCapability),
 	))
 
 	if cell.Style.Bold {
@@ -75,10 +77,11 @@ func NewRenderer(out io.Writer, width, height int) *Renderer {
 	back := buffer.NewGrid(width, height)
 
 	return &Renderer{
-		Out:    out,
-		front:  front,
-		back:   back,
-		width:  width,
-		height: height,
+		Out:             out,
+		front:           front,
+		back:            back,
+		width:           width,
+		height:          height,
+		colorCapability: terminal.DetectColorCapability(),
 	}
 }
