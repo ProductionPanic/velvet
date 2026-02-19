@@ -83,7 +83,7 @@ func (m model) Update(msg velvet.Msg) (velvet.Model, velvet.Cmd) {
 }
 
 func (m model) View() *buffer.Grid {
-	views := []*velvet.Container{}
+	views := []*velvet.Component{}
 	for i := range m.counters {
 		views = append(views, m.counters[i].View())
 	}

@@ -50,7 +50,7 @@ func (m model) View() *buffer.Grid {
 	b := buffer.NewGrid(m.width, m.height)
 
 	// Create a container
-	container := velvet.NewContainer().
+	container := velvet.NewComponent().
 		Foreground(color.FromHex("#ffffff")).
 		Background(color.FromHex("#111")).
 		Padding(1, 2).

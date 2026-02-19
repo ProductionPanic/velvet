@@ -10,7 +10,7 @@ import (
 	"github.com/rivo/uniseg"
 )
 
-type Container struct {
+type Component struct {
 	padding struct {
 		top, right, bottom, left int
 	}
@@ -27,24 +27,24 @@ type Container struct {
 	height           int
 }
 
-func NewContainer() *Container {
-	return &Container{
+func NewComponent() *Component {
+	return &Component{
 		textWrap:         style.BreakSpaces,
 		borderTextMargin: 1,
 	}
 }
 
-func (c *Container) Copy() *Container {
+func (c *Component) Copy() *Component {
 	newContainer := *c
 	return &newContainer
 }
 
-func (c *Container) Content(content string) *Container {
+func (c *Component) Content(content string) *Component {
 	c.content = content
 	return c
 }
 
-func (c *Container) Padding(p ...int) *Container {
+func (c *Component) Padding(p ...int) *Component {
 	if len(p) == 1 {
 		padding := p[0]
 		c.padding.top = padding
@@ -65,73 +65,73 @@ func (c *Container) Padding(p ...int) *Container {
 	return c
 }
 
-func (c *Container) BorderTextTop(text string) *Container {
+func (c *Component) BorderTextTop(text string) *Component {
 	c.borderTextTop = text
 	return c
 }
 
-func (c *Container) BorderTextBottom(text string) *Container {
+func (c *Component) BorderTextBottom(text string) *Component {
 	c.borderTextBott = text
 	return c
 }
 
-func (c *Container) PaddingTop(p int) *Container {
+func (c *Component) PaddingTop(p int) *Component {
 	c.padding.top = p
 	return c
 }
 
-func (c *Container) PaddingRight(p int) *Container {
+func (c *Component) PaddingRight(p int) *Component {
 	c.padding.right = p
 	return c
 }
 
-func (c *Container) PaddingBottom(p int) *Container {
+func (c *Component) PaddingBottom(p int) *Component {
 	c.padding.bottom = p
 	return c
 }
 
-func (c *Container) PaddingLeft(p int) *Container {
+func (c *Component) PaddingLeft(p int) *Component {
 	c.padding.left = p
 	return c
 }
 
-func (c *Container) Border(b style.BorderStyle) *Container {
+func (c *Component) Border(b style.BorderStyle) *Component {
 	c.border = b
 	return c
 }
 
-func (c *Container) BorderColor(col color.Color) *Container {
+func (c *Component) BorderColor(col color.Color) *Component {
 	c.borderColor = col
 	return c
 }
 
-func (c *Container) Foreground(col color.Color) *Container {
+func (c *Component) Foreground(col color.Color) *Component {
 	c.foreground = col
 	return c
 }
 
-func (c *Container) Background(col color.Color) *Container {
+func (c *Component) Background(col color.Color) *Component {
 	c.background = col
 	return c
 }
 
-func (c *Container) Size(width, height int) *Container {
+func (c *Component) Size(width, height int) *Component {
 	c.width = width
 	c.height = height
 	return c
 }
 
-func (c *Container) Width(width int) *Container {
+func (c *Component) Width(width int) *Component {
 	c.width = width
 	return c
 }
 
-func (c *Container) Height(height int) *Container {
+func (c *Component) Height(height int) *Component {
 	c.height = height
 	return c
 }
 
-func (c *Container) getLongestLine(input [][]buffer.Cell) int {
+func (c *Component) getLongestLine(input [][]buffer.Cell) int {
 	maxWidth := 0
 
 	for _, line := range input {
@@ -147,7 +147,7 @@ func (c *Container) getLongestLine(input [][]buffer.Cell) int {
 	return maxWidth
 }
 
-func (c *Container) getExtraWidth() int {
+func (c *Component) getExtraWidth() int {
 	paddingWidth := c.padding.left + c.padding.right
 	borderWidth := 0
 
@@ -158,7 +158,7 @@ func (c *Container) getExtraWidth() int {
 	return paddingWidth + borderWidth
 }
 
-func (c *Container) getExtraHeight() int {
+func (c *Component) getExtraHeight() int {
 	paddingHeight := c.padding.top + c.padding.bottom
 	borderHeight := 0
 
@@ -169,7 +169,7 @@ func (c *Container) getExtraHeight() int {
 	return paddingHeight + borderHeight
 }
 
-func (c *Container) wrapText(text string, maxWidth int) []string {
+func (c *Component) wrapText(text string, maxWidth int) []string {
 	var wrappedLines []string
 	currentLine := ""
 
@@ -213,13 +213,13 @@ func (c *Container) wrapText(text string, maxWidth int) []string {
 	return wrappedLines
 }
 
-func (c *Container) updateStyle(currentStyle *style.CellStyle, styleValue string) *style.CellStyle {
+func (c *Component) updateStyle(currentStyle *style.CellStyle, styleValue string) *style.CellStyle {
 	parts := strings.Split(styleValue, ",") // Split the style value by comma to support multiple styles in one tag (e.g. [red,bold])
 
 	return style.ApplyTemplateStyle(parts, currentStyle.Copy())
 }
 
-func (c *Container) getContainerCellStyle() *style.CellStyle {
+func (c *Component) getContainerCellStyle() *style.CellStyle {
 	// build a cell style based on the container's foreground and background colors
 	return &style.CellStyle{
 		Fg: c.foreground,
@@ -227,7 +227,7 @@ func (c *Container) getContainerCellStyle() *style.CellStyle {
 	}
 }
 
-func (c *Container) parseLines(input string) [][]buffer.Cell {
+func (c *Component) parseLines(input string) [][]buffer.Cell {
 	lines := strings.Split(input, "\n")
 	var parsedLines [][]buffer.Cell
 
@@ -267,7 +267,7 @@ func (c *Container) parseLines(input string) [][]buffer.Cell {
 	return parsedLines
 }
 
-func (c *Container) applyTextWrap(lines [][]buffer.Cell, fixedContentWidth int, fixedContentHeight int) [][]buffer.Cell {
+func (c *Component) applyTextWrap(lines [][]buffer.Cell, fixedContentWidth int, fixedContentHeight int) [][]buffer.Cell {
 	var wrappedLines [][]buffer.Cell
 
 	if fixedContentWidth > 0 && fixedContentHeight == 0 { // only width constraint
@@ -436,7 +436,7 @@ func (c *Container) applyTextWrap(lines [][]buffer.Cell, fixedContentWidth int, 
 	return wrappedLines
 }
 
-func (c *Container) Render(s ...string) *buffer.Grid {
+func (c *Component) Render(s ...string) *buffer.Grid {
 	input := c.content + strings.Join(s, "\n")
 	// first we check if there is any constraints on the width and height.
 	var fixedContentWidth, fixedContentHeight int

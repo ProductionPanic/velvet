@@ -31,8 +31,8 @@ func (c CounterComponent) Update(msg velvet.Msg) (CounterComponent, velvet.Cmd) 
 	return c, nil
 }
 
-func (c CounterComponent) View() *velvet.Container {
-	output := velvet.NewContainer().
+func (c CounterComponent) View() *velvet.Component {
+	output := velvet.NewComponent().
 		Foreground(color.FromHex("#fff")).
 		Background(color.FromHex("#222")).
 		Border(style.RoundedBorder()).

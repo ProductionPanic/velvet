@@ -3,14 +3,14 @@ package velvet
 import "github.com/ProductionPanic/velvet/buffer"
 
 type FlexContainer struct {
-	items         []*Container // items to be laid out
+	items         []*Component // items to be laid out
 	width, height int          // the available space for the container
 	horizontal    bool         // whether to layout items horizontally (default) or vertically
 }
 
 func NewFlexContainer() *FlexContainer {
 	return &FlexContainer{
-		items:      []*Container{},
+		items:      []*Component{},
 		horizontal: true,
 	}
 }
@@ -31,7 +31,7 @@ func (fc *FlexContainer) SetSize(w, h int) *FlexContainer {
 	return fc
 }
 
-func (fc *FlexContainer) Add(item ...*Container) *FlexContainer {
+func (fc *FlexContainer) Add(item ...*Component) *FlexContainer {
 	fc.items = append(fc.items, item...)
 	return fc
 }
@@ -95,14 +95,14 @@ func (fc *FlexContainer) Render() *buffer.Grid {
 }
 
 type GridContainer struct {
-	items         []*Container // items to be laid out
+	items         []*Component // items to be laid out
 	width, height int          // the available space for the container
 	Rows, Cols    int          // number of rows and columns in the grid
 }
 
 func NewGridContainer() *GridContainer {
 	return &GridContainer{
-		items: []*Container{},
+		items: []*Component{},
 	}
 }
 
@@ -132,7 +132,7 @@ func (gc *GridContainer) SetCols(cols int) *GridContainer {
 	return gc
 }
 
-func (gc *GridContainer) Add(item ...*Container) *GridContainer {
+func (gc *GridContainer) Add(item ...*Component) *GridContainer {
 	gc.items = append(gc.items, item...)
 	return gc
 }
