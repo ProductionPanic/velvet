@@ -3,8 +3,6 @@ package velvet
 import (
 	"io"
 	"os"
-	"os/signal"
-	"syscall"
 
 	"github.com/ProductionPanic/velvet/ansi"
 	"github.com/ProductionPanic/velvet/terminal"
@@ -123,17 +121,7 @@ func (p *Program) Run() error {
 	p.renderer = NewRenderer(p.output, p.width, p.height)
 
 	// Handle window resize signals
-	sigChan := make(chan os.Signal, 1)
-	signal.Notify(sigChan, syscall.SIGWINCH)
-	go func() {
-		for range sigChan {
-			w, h, err := terminal.GetSize()
-			if err == nil {
-				p.msgs <- WindowSizeMsg{Width: w, Height: h}
-			}
-		}
-	}()
-	defer signal.Stop(sigChan)
+	handleResize(p)
 
 	// Start input reader
 	if p.inputEnabled {
