@@ -10,6 +10,18 @@ import (
 	"github.com/rivo/uniseg"
 )
 
+// TextAlignment defines how text should be aligned horizontally within a component.
+type TextAlignment int
+
+const (
+	// AlignLeft aligns text to the left (default).
+	AlignLeft TextAlignment = iota
+	// AlignCenter centers the text.
+	AlignCenter
+	// AlignRight aligns text to the right.
+	AlignRight
+)
+
 type Component struct {
 	padding struct {
 		top, right, bottom, left int
@@ -23,6 +35,7 @@ type Component struct {
 	foreground       color.Color
 	background       color.Color
 	textWrap         style.TextWrap
+	textAlign        TextAlignment
 	width            int
 	height           int
 }
@@ -131,6 +144,24 @@ func (c *Component) Height(height int) *Component {
 	return c
 }
 
+func (c *Component) TextAlign(align TextAlignment) *Component {
+	c.textAlign = align
+	return c
+}
+
+func (c *Component) getTextXOffset(lineWidth, contentWidth int) int {
+	switch c.textAlign {
+	case AlignLeft:
+		return c.padding.left
+	case AlignCenter:
+		return (contentWidth-lineWidth)/2 + c.padding.left
+	case AlignRight:
+		return contentWidth - lineWidth + c.padding.left
+	default:
+		return c.padding.left
+	}
+}
+
 func (c *Component) getLongestLine(input [][]buffer.Cell) int {
 	maxWidth := 0
 
@@ -167,6 +198,13 @@ func (c *Component) getExtraHeight() int {
 	}
 
 	return paddingHeight + borderHeight
+}
+
+func (c *Component) getBorderWidth() int {
+	if c.border != (style.BorderStyle{}) {
+		return 1 // Border adds 1 character on the left side
+	}
+	return 0
 }
 
 func (c *Component) wrapText(text string, maxWidth int) []string {
@@ -481,10 +519,17 @@ func (c *Component) RenderWithContent(s ...string) *buffer.Grid {
 
 	// set content
 	for y, line := range parsedLines {
+		// Calculate the x offset for this line based on alignment
+		lineWidth := 0
+		for _, r := range line {
+			lineWidth += r.Width()
+		}
+		xOffset := c.getTextXOffset(lineWidth, contentWidth) + c.getBorderWidth()
+
 		col := 0 // track actual column position (accounts for wide characters)
 		for _, r := range line {
 			// Set the main cell
-			grid.Set(col+c.getExtraWidth()/2, y+c.getExtraHeight()/2, buffer.Cell{
+			grid.Set(col+xOffset, y+c.getExtraHeight()/2, buffer.Cell{
 				Content: r.Content,
 				Style:   r.Style,
 			})
@@ -493,7 +538,7 @@ func (c *Component) RenderWithContent(s ...string) *buffer.Grid {
 			// to prevent overlap
 			charWidth := r.Width()
 			for i := 1; i < charWidth; i++ {
-				grid.Set(col+i+c.getExtraWidth()/2, y+c.getExtraHeight()/2, buffer.Cell{
+				grid.Set(col+i+xOffset, y+c.getExtraHeight()/2, buffer.Cell{
 					Content: "",
 					Style:   r.Style,
 				})
