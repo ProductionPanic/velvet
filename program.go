@@ -110,6 +110,15 @@ func (p *Program) Run() error {
 	ansi.Print(ansi.EnterAltScreen)
 	defer ansi.Print(ansi.ExitAltScreen)
 
+	if p.mouseAllMotion {
+		ansi.Print(ansi.EnableMouseAllMotion)
+	} else {
+		ansi.Print(ansi.EnableMouseClick)
+	}
+	ansi.Print(ansi.EnableMouseSGRMouse)
+
+	defer ansi.Print(ansi.DisableMouseAllMotion, ansi.DisableMouseClick, ansi.DisableMouseSGRMouse)
+
 	ansi.Print(
 		ansi.ClearScreen,
 		ansi.SetCursorPosition(1, 1),

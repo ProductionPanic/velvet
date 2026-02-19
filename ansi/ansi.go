@@ -17,6 +17,14 @@ const (
 	EnterAltScreen = "\033[?1049h"
 	ExitAltScreen  = "\033[?1049l"
 
+	EnableMouseAllMotion = "\033[?1003h"
+	EnableMouseClick     = "\033[?1000h"
+	EnableMouseSGRMouse  = "\033[?1006h"
+
+	DisableMouseAllMotion = "\033[?1003l"
+	DisableMouseClick     = "\033[?1000l"
+	DisableMouseSGRMouse  = "\033[?1006l"
+
 	ClearScreen = "\033[2J"
 
 	ShowCursor       = "\033[?25h"

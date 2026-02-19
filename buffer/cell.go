@@ -9,6 +9,7 @@ type Cell struct {
 	Content   string // changed from rune to string to support multi-rune grapheme clusters
 	Style     *style.CellStyle
 	runeWidth int
+	ZoneId    string // for mouse event handling
 }
 
 func NewCell(r rune, s *style.CellStyle) Cell {
@@ -30,6 +31,10 @@ func (c Cell) Width() int {
 		c.runeWidth = runewidth.StringWidth(c.Content)
 	}
 	return c.runeWidth
+}
+
+func (c *Cell) SetZoneId(id string) {
+	c.ZoneId = id
 }
 
 func (c Cell) IsSpace() bool {
