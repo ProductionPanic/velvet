@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/ProductionPanic/velvet"
-	"github.com/ProductionPanic/velvet/buffer"
 	"github.com/ProductionPanic/velvet/style"
 	"github.com/ProductionPanic/velvet/style/color"
 )
@@ -46,9 +45,7 @@ func (m model) Update(msg velvet.Msg) (velvet.Model, velvet.Cmd) {
 	return m, nil
 }
 
-func (m model) View() *buffer.Grid {
-	b := buffer.NewGrid(m.width, m.height)
-
+func (m model) Render() velvet.Drawable {
 	// Create a container
 	container := velvet.NewComponent().
 		Foreground(color.FromHex("#ffffff")).
@@ -66,10 +63,8 @@ func (m model) View() *buffer.Grid {
 		m.counter,
 	)
 
-	rendered := container.Render(displayText)
-	b.Place(rendered, buffer.AlignCenter, buffer.AlignMiddle)
-
-	return b
+	container.Content(displayText)
+	return container
 }
 
 func main() {

@@ -7,7 +7,6 @@ import (
 	"syscall"
 
 	"github.com/ProductionPanic/velvet/ansi"
-	"github.com/ProductionPanic/velvet/buffer"
 	"github.com/ProductionPanic/velvet/terminal"
 )
 
@@ -19,8 +18,8 @@ type Model interface {
 	// Update is called when a message is received
 	Update(Msg) (Model, Cmd)
 
-	// View returns the buffer to render
-	View() *buffer.Grid
+	// Render returns a Drawable to render
+	Render() Drawable
 }
 
 // Program manages the application lifecycle
@@ -198,9 +197,10 @@ func (p *Program) eventLoop() error {
 
 // render draws the current view
 func (p *Program) render() {
-	view := p.model.View()
-	if view != nil {
-		p.renderer.Write(view)
+	drawable := p.model.Render()
+	if drawable != nil {
+		grid := drawable.Render()
+		p.renderer.Write(grid)
 		p.renderer.Flush()
 	}
 }

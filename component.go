@@ -436,7 +436,13 @@ func (c *Component) applyTextWrap(lines [][]buffer.Cell, fixedContentWidth int, 
 	return wrappedLines
 }
 
-func (c *Component) Render(s ...string) *buffer.Grid {
+// Render implements the Drawable interface
+func (c *Component) Render() *buffer.Grid {
+	return c.RenderWithContent()
+}
+
+// RenderWithContent renders the component with optional additional content
+func (c *Component) RenderWithContent(s ...string) *buffer.Grid {
 	input := c.content + strings.Join(s, "\n")
 	// first we check if there is any constraints on the width and height.
 	var fixedContentWidth, fixedContentHeight int

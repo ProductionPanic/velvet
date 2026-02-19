@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/ProductionPanic/velvet"
-	"github.com/ProductionPanic/velvet/buffer"
 )
 
 type model struct {
@@ -82,18 +81,14 @@ func (m model) Update(msg velvet.Msg) (velvet.Model, velvet.Cmd) {
 	return m, cmd
 }
 
-func (m model) View() *buffer.Grid {
-	views := []*velvet.Component{}
+func (m model) Render() velvet.Drawable {
+	views := []velvet.Drawable{}
 	for i := range m.counters {
-		views = append(views, m.counters[i].View())
+		views = append(views, m.counters[i].Render())
 	}
-	b := velvet.NewGridContainer().
+	return velvet.NewFlexContainer().
 		SetSize(m.width, m.height).
-		Add(views...).
-		SetRows(4).
-		Render()
-
-	return b
+		Add(views...)
 }
 
 func initialModel() model {
