@@ -172,6 +172,32 @@ func (p *Program) eventLoop() error {
 				return nil
 			}
 
+			// handle mouse events
+			if mouseMsg, ok := msg.(MouseMsg); ok {
+				// If mouse motion events are disabled, ignore MouseMotion messages
+				if mouseMsg.Type == MouseMotion && !p.mouseAllMotion {
+					continue
+				}
+
+				// else we want to populate the mouse ZoneId to allow for hit testing in the model
+				mouseX, mouseY := mouseMsg.X, mouseMsg.Y
+
+				for i, cell := range p.renderer.front.Cells {
+					if cell.ZoneId == "" {
+						continue
+					}
+					cellX, cellY := p.renderer.front.Coordinates(i)
+					cellX += 1 // Convert to 1-based coordinates
+					cellY += 1
+					if cellX == mouseX && cellY == mouseY {
+						mouseMsg.ZoneID = cell.ZoneId
+						break
+					}
+				}
+
+				msg = mouseMsg
+			}
+
 			// Handle window resize
 			if wsm, ok := msg.(WindowSizeMsg); ok {
 				p.width = wsm.Width

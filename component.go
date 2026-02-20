@@ -38,6 +38,7 @@ type Component struct {
 	textAlign        TextAlignment
 	width            int
 	height           int
+	zoneID           string
 }
 
 func NewComponent() *Component {
@@ -54,6 +55,11 @@ func (c *Component) Copy() *Component {
 
 func (c *Component) Content(content string) *Component {
 	c.content = content
+	return c
+}
+
+func (c *Component) SetZoneID(id string) *Component {
+	c.zoneID = id
 	return c
 }
 
@@ -476,7 +482,7 @@ func (c *Component) applyTextWrap(lines [][]buffer.Cell, fixedContentWidth int, 
 
 // Render implements the Drawable interface
 func (c *Component) Render() *buffer.Grid {
-	return c.RenderWithContent()
+	return c.RenderWithContent().WithZoneID(c.zoneID)
 }
 
 // RenderWithContent renders the component with optional additional content

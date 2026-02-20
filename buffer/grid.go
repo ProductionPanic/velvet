@@ -48,10 +48,8 @@ func (g *Grid) SetRune(x, y int, c string) {
 func (g *Grid) SetEmptyCells(c string, s *style.CellStyle) {
 	for i := range g.Cells {
 		if g.Cells[i].Content == " " {
-			g.Cells[i] = Cell{
-				Content: c,
-				Style:   s,
-			}
+			g.Cells[i].Content = c
+			g.Cells[i].Style = s
 		}
 	}
 }
@@ -112,6 +110,21 @@ func (g *Grid) Place(b *Grid, x PositionX, y PositionY) {
 			g.Set(startX+bx, startY+by, b.Get(bx, by))
 		}
 	}
+}
+
+func (g *Grid) SetZoneID(zoneId string) {
+	for i := range g.Cells {
+		g.Cells[i].ZoneId = zoneId
+	}
+}
+
+func (g *Grid) WithZoneID(zoneId string) *Grid {
+	newGrid := NewGrid(g.Width, g.Height)
+	for i := range g.Cells {
+		newGrid.Cells[i] = g.Cells[i]
+		newGrid.Cells[i].ZoneId = zoneId
+	}
+	return newGrid
 }
 
 func NewGrid(width, height int) *Grid {

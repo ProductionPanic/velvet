@@ -2,8 +2,10 @@ package main
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/ProductionPanic/velvet"
+	"github.com/ProductionPanic/velvet/buffer"
 	"github.com/ProductionPanic/velvet/style"
 )
 
@@ -17,10 +19,13 @@ type model struct {
 }
 
 func initialModel() velvet.Model {
+	btn := ButtonComponent{
+		ZoneID: "button1",
+		Label:  "Drag me!",
+	}
+
 	return model{
-		button: ButtonComponent{
-			ZoneID: "button1",
-		},
+		button:   btn,
 		offsetX:  10,
 		offsetY:  5,
 		clickLog: "Click the button and drag it around!",
@@ -63,17 +68,29 @@ func (m model) Update(msg velvet.Msg) (velvet.Model, velvet.Cmd) {
 			action = "released"
 		}
 		m.clickLog = fmt.Sprintf("%s at x:%d and y:%d, zone: %s", action, msg.X, msg.Y, msg.ZoneID)
+		m.button, _ = m.button.Update(msg)
 		return m, nil
 	}
 	return m, nil
+}
+
+func debug(grid *buffer.Grid) {
+	zoneIds := []string{}
+
+	for _, cell := range grid.Cells {
+		if cell.ZoneId != "" {
+			zoneIds = append(zoneIds, cell.ZoneId)
+		}
+	}
+
+	log.Println("Zones in current render:", zoneIds)
 }
 
 func (m model) Render() velvet.Drawable {
 	d := velvet.NewFlexContainer().SetSize(m.width, m.height)
 
 	clicklog := velvet.NewComponent().Content(m.clickLog).Border(style.RoundedBorder())
-
-	d.Add(m.button, clicklog)
+	d.Add(m.button.Render(), clicklog)
 
 	return d
 }
