@@ -12,6 +12,12 @@ func (g *Grid) index(x, y int) int {
 	return y*g.Width + x
 }
 
+func (g *Grid) Coordinates(index int) (x, y int) {
+	x = index % g.Width
+	y = index / g.Width
+	return x, y
+}
+
 func (g *Grid) isInBounds(x, y int) bool {
 	return x >= 0 && x < g.Width && y >= 0 && y < g.Height
 }

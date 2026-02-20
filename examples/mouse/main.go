@@ -28,6 +28,12 @@ func initialModel() velvet.Model {
 }
 
 func main() {
+	f, err := velvet.LogToFile("mouse_events.log", "debug")
+	if err != nil {
+		panic(fmt.Sprintf("Failed to set up logging: %v", err))
+	}
+	defer f.Close()
+
 	p := velvet.NewProgram(initialModel(), velvet.WithMouseAllMotion(true))
 	if err := p.Run(); err != nil {
 		panic(err)
@@ -56,7 +62,7 @@ func (m model) Update(msg velvet.Msg) (velvet.Model, velvet.Cmd) {
 		} else if msg.Type == velvet.MouseRelease {
 			action = "released"
 		}
-		m.clickLog = fmt.Sprintf("%s at x:%d and y:%d", action, msg.X, msg.Y)
+		m.clickLog = fmt.Sprintf("%s at x:%d and y:%d, zone: %s", action, msg.X, msg.Y, msg.ZoneID)
 		return m, nil
 	}
 	return m, nil
@@ -65,9 +71,9 @@ func (m model) Update(msg velvet.Msg) (velvet.Model, velvet.Cmd) {
 func (m model) Render() velvet.Drawable {
 	d := velvet.NewFlexContainer().SetSize(m.width, m.height)
 
-	log := velvet.NewComponent().Content(m.clickLog).Border(style.RoundedBorder())
+	clicklog := velvet.NewComponent().Content(m.clickLog).Border(style.RoundedBorder())
 
-	d.Add(m.button, log)
+	d.Add(m.button, clicklog)
 
 	return d
 }

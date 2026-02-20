@@ -1,5 +1,13 @@
-list:
-    @just --list
+default: select
+
+
+select:
+    #!/bin/sh
+    example=$( ls -d */ | sed 's#/##' | gum choose )
+    if [ -z "$example" ]; then
+        exit 0
+    fi
+    just run ${example}
 
 _run example:
     cd ./{{example}} && go run .
